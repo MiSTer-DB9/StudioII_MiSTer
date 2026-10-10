@@ -204,7 +204,7 @@ assign BUTTONS = 0;
 
 `include "build_id.v"
 localparam CONF_STR = {
-	"Studio-II;v11;",
+	"Studio-II;;",
 	"F1,ST2BIN,Load Software;",
 	// CHIP-8 data can be preloaded regardless of the active machine
 	"F3,CH8,Load CHIP-8;",
@@ -260,6 +260,7 @@ localparam CONF_STR = {
 	"J1,Fire,Extra,Start,Clear,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,B0,B1,B2,B3,B4,B5,B6,B7,B8,B9;",
 	// Default virtual mapping
 	"jn,A,B,Start,Select;",
+	"v,0;",
 	"V,v",`BUILD_DATE
 };
 
