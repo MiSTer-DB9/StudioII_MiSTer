@@ -53,8 +53,7 @@ assign BUTTONS = 0;
 localparam CONF_STR = {
 	"Studio-II;;",
 	"F1,ST2BIN,Load Software;",
-	// CHIP-8 data can be preloaded regardless of the active machine
-	"F3,CH8,Load CHIP-8;",
+	"D3F3,CH8,Load CHIP-8;",
 	"-;",
 
 	// Machine held until Apply
@@ -402,6 +401,7 @@ always @(posedge clk_sys) begin
 end
 
 assign status_menumask = ((!status[6]) ? 16'h0004 : 16'h0000) |
+	                     ((machine_active == 2'd3) ? 16'h0008 : 16'h0000) |
 	                     (((machine_active == 2'd1) ||
 	                       (machine_active == 2'd2)) ? 16'h0010 : 16'h0000) |
 	                     ((machine_active != 2'd2) ? 16'h0020 : 16'h0000) |
