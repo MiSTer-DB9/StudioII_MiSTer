@@ -36,11 +36,9 @@ Put the 4 BIOS files below in /media/fat/games/Studio-II/. CHIP-8 games will wor
 | Studio III NTSC | boot2.rom | studio3_ntsc.bin | 4 KB | 849A484AA4B2784ECE5C35C39D9D51A8 |
 | Visicom | boot3.rom | visicom.rom | 2 KB | AEEC6FE3934481E20EB7DB6D5FF56A54 |
 
-The above table is not exhaustive; other ROMs may also work.
-
 ## Use
 
-* Use Load Software to load an .st2 or .bin file for the selected machine. 
+* Use Load Software to load an .st2 or .bin file for the selected machine
 * Use Load CHIP-8 to select a .ch8 original CHIP-8 game. OpenStudio2 is used as the default CHIP-8 interpreter
 * Select Machine (Studio II, Studio III PAL, Studio III NTSC, Visicom) first, then Apply and Reset to actually switch
 
@@ -60,7 +58,7 @@ The keypads are mapped to the MiSTer keyboard like this:
        X                      ,
 ```
 
-| Key | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 |
+| Studio II Key | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 0 |
 |---|---|---|---|---|---|---|---|---|---|---|
 | Keypad A | 1 | 2 | 3 | Q | W | E | A | S | D | X |
 | Keypad B | 7 | 8 | 9 | U | I | O | J | K | L | , |
@@ -85,7 +83,7 @@ This keyboard layout is active only while a CHIP-8 program is loaded. Direct
 keypad bindings and Numstick continue to use keypad A for 0–9 and keypad B
 1–6 for A–F.
 
-The CHIP-8 gamepad profile maps D-pad Up/Left/Down/Right to 5/7/8/9, Start to 1, Fire to F, and Extra to 0. There is probably a better mapping. Please create an issue if you have a suggestion.
+The CHIP-8 gamepad profile maps D-pad Up/Left/Down/Right to 5/7/8/9, Start to 1, Fire to F, and Extra to 0. There are probably better mappings. Please create an issue if you have a suggestion.
 
 Marcel van Tongeren's chip8.bin interpreter has additional memory limitations. See Marcel van Tongeren's [informational page](https://emma02.hobby-site.com/studio_chip8.html) for more info.
 
@@ -105,7 +103,7 @@ CHIP-8 cannot be used on Visicom (no CHIP-8 interpreter).
 
 ## Controller profiles
 
-Mapping: Auto selects a controller profile from the cartridge CRC, falling back to 8-way for unknown games. Resident games can also select their profiles automatically. Manual exposes direct Joystick profile selection. Game-specific controls are listed in [docs/how-to-play.md](docs/how-to-play.md).
+Mapping: Auto selects a controller profile from the cartridge CRC, falling back to 8-way for unknown games. Resident games select their profiles automatically based on start key. Manual mode allows direct profile selection. Game-specific controls are listed in [docs/how-to-play.md](docs/how-to-play.md).
 
 ## Numstick (on-screen keypad)
 
@@ -117,6 +115,6 @@ Studio IV is not supported.
 
 ## Project information
 
-Original core by Jason Coombes; MiSTer integration and Pixie work by Flandango; later contributions by Alan Steremberg and Elle Ball. See [CREDITS.md](CREDITS.md) for detailed acknowledgements.
+Original core by Jason Coombes; MiSTer integration and Pixie work by Flandango; later contributions by Alan Steremberg and Elle Ball. See [CREDITS.md](CREDITS.md).
 
 GPL-2.0-or-later; see file headers and [LICENSE](LICENSE). OpenStudio2 is licensed under [MIT](rom/openstudio2-LICENSE.txt).

@@ -245,7 +245,7 @@ localparam CONF_STR = {
 	"P3,System;",
 	"P3-;",
 	"P3F2,BINROM,Load Firmware/ROM;",
-	"P3F4,BINROM,Load CHIP-8 Interp.;",
+	"P3F4,BINROM,Load CHIP-8 Interpreter;",
 	"P3-;",
 	"P3T[1],Clear;",
 	"P3T[0],Reset;",
