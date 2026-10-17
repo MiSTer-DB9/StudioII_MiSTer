@@ -91,7 +91,7 @@ localparam CONF_STR = {
 	"P3,System;",
 	"P3-;",
 	"P3F2,BINROM,Load Firmware/ROM;",
-	"P3F4,BINROM,Load CHIP-8 Interpreter;",
+	"P3F4,BINROM,CHIP-8 Interpreter;",
 	"P3-;",
 	"P3T[1],Clear;",
 	"P3T[0],Reset;",
@@ -306,7 +306,9 @@ wire apply_hard_reset = (status[15] && apply_crossing_now) || (apply_reset && ap
 wire apply_soft_reset = apply_reset && !apply_hard_reset;
 
 // Hard reset win if sources overlap
-wire hard_reset = RESET | status[0] | status[27] | buttons[1] | hard_reset_hold | ~rom_loaded | mach_reset |
+wire chip8_active;
+// CHIP-8 runs from its own interpreter ROM without a machine BIOS.
+wire hard_reset = RESET | status[0] | status[27] | buttons[1] | hard_reset_hold | (!rom_loaded && !chip8_active) | mach_reset |
                   (download_reset && !download_soft) | apply_hard_reset;
 wire soft_reset = clear_request | (download_reset && download_soft) | apply_soft_reset;
 wire reset       = hard_reset | soft_reset;
@@ -363,7 +365,8 @@ rcastudioii rcastudio
 	.ntsc_pal_pitch(status[20]),
 	.osk_a(osk_a),
 	.osk_b(osk_b),
-	.clear_key(clear_request)
+	.clear_key(clear_request),
+	.chip8_active(chip8_active)
 );
 
 ////////////////// Joystick profile -> OSD ///////////////////////////////////
