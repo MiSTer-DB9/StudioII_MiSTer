@@ -235,7 +235,7 @@ Primary test suite command, from the repo root directory (Linux / WSL):
 
 - `make -C verilator clean && make -C verilator headless && bash tools/rtl-regression.sh`
 
-`tools/rtl-regression.sh` rebuilds the headless and CPU-only models, runs the LOAD test, and then runs the headless smoke suite.
+`tools/rtl-regression.sh` rebuilds the models, runs the LOAD, palette, and MiSTer reset tests, then runs the headless smoke suite.
 
 Directed checks include:
 
@@ -246,6 +246,7 @@ Directed checks include:
 - `tools/verify-beeper.sh`
 - `make -C verilator cpu-load-test`
 - `make -C verilator palette-test`
+- `make -C verilator emu-reset-test` (real MiSTer top with HPS and PLL stubs)
 
 `tools/game-start-sweep.py` remains available for exact-image startup and screenshot regression work but is not run as part of the primary rtl-regression suite.
 
