@@ -1,4 +1,4 @@
-// model of NE555. based on FLiP's Q Sound Test recordings
+// model of NE555. based on FliP's Q Sound Test recordings
 localparam [15:0] SND_HALF_TOP    = 16'd1400;
 localparam [15:0] SND_HALF_BOTTOM = 16'd1741;
 localparam [15:0] SND_HOLD_TICKS  = 16'd35205; // ~20ms
@@ -278,4 +278,4 @@ end
 wire [13:0] snd_magnitude = ({6'd0, snd_amp} << 4) + ({6'd0, snd_amp} << 3);
 wire signed [15:0] snd_sample = snd_out ? $signed({2'b00, snd_magnitude})
 	                                   : -$signed({2'b00, snd_magnitude});
-assign audio = is_studio3 ? (aud_tone ? 16'sd6000 : -16'sd6000) : snd_sample;
+assign audio = is_studio3 ? mpt02_sample : snd_sample;
