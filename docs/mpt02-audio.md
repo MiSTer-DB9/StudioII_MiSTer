@@ -114,11 +114,11 @@ Local results and reproduction script are beside the captures:
 
 | Setting | alpha | Pole | Source |
 | --- | ---: | ---: | --- |
-| MPT-02 (default) | 101/8192 | 434.4 Hz | FliP's direct CDP1864 captures |
-| Apollo 80 | 581/8192 | 2576 Hz | TLD1985's Academy Apollo 80 footage |
+| Apollo 80 (default) | 581/8192 | 2576 Hz | TLD1985's Academy Apollo 80 footage |
+| MPT-02 | 101/8192 | 434.4 Hz | FliP's direct CDP1864 captures |
 | Off | - | - | raw square wave |
 
-The filter uses shifts and adds with 16 fractional bits, retaining the existing +/-6000 input levels. Its state continues through Q transitions, CLEAR, pitch writes, and mute; video reset restores the silent input level. Off follows the tone directly. Studio II and Visicom retain their existing paths. The headless simulator takes `--studio3-filter mpt02|apollo80|off`.
+The filter uses shifts and adds with 16 fractional bits, retaining the existing +/-6000 input levels. Its state continues through Q transitions, CLEAR, pitch writes, and mute; video reset restores the silent input level. Off follows the tone directly. Studio II and Visicom retain their existing paths. The headless simulator takes `--studio3-filter apollo80|mpt02|off`.
 
 The NTSC CDP1863 path uses the same filter provisionally for listening tests.
 TODO: validate the NTSC response against hardware recordings.
@@ -190,6 +190,6 @@ Pitch: 23 distinct steady tones between 258 and 2278 Hz all fit `f_clk / (64 * (
 
 Timbre: the Apollo audio is much brighter than the MPT-02 captures. Median odd-harmonic levels for the default tone are H3 -10.7 dB, H5 -17.0 dB, H7 -21.2 dB, and H9 -24.5 dB. A square wave through one pole near 2.6 kHz fits all tones with a median absolute error of 0.61 dB. The 435 Hz pole errs by 8.0 dB, and an unfiltered square wave by 4.3 dB. A 2.6 kHz pole is close to the 3.18 kHz corner of PAL 50 us FM de-emphasis, so the TV or capture path may explain most of it. Even harmonics sit at -17 to -22 dB below 500 Hz and fall with frequency; their source is unclear.
 
-Implication: these two sources disagree about the PAL low-pass. The MPT-02 tap may include an on-board RC network, or the Apollo path may lack one. Both responses are available as OSD settings (see Implemented estimate); MPT-02 stays the default until the capture points are known. Ask FliP where on the MPT-02 the audio was tapped, and ask TLD1985 how the Apollo audio was captured.
+Implication: these two sources disagree about the PAL low-pass. The MPT-02 tap may include an on-board RC network, or the Apollo path may lack one. Both responses are available as OSD settings (see Implemented estimate); Apollo 80 is the default because the MPT-02 response sounds muted in listening tests; the capture points are still unknown. Ask FliP where on the MPT-02 the audio was tapped, and ask TLD1985 how the Apollo audio was captured.
 
 The video shows several Studio III games and the Biorhythm cartridge, which may help with PAL colour and layout comparisons. Local results and scripts: `refs/mpt-02-audio/tld1985-analysis.txt` and `tld-tones.py`, `tld-refine.py`, `tld-fit.py`.

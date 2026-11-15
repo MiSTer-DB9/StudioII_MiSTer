@@ -76,15 +76,15 @@ int main(int argc, char** argv) {
     Vmpt02_audio top;
     int failures = 0;
 
-    // Filter 0, MPT-02: 434.4 Hz pole, tau about 81 machine cycles.
-    failures += check_step(top, 0, 81, 1500, 1700);
-    // Filter 1, Apollo 80: 2576 Hz pole, tau about 14 machine cycles.
-    failures += check_step(top, 1, 14, 1600, 1800);
+    // Filter 1, MPT-02: 434.4 Hz pole, tau about 81 machine cycles.
+    failures += check_step(top, 1, 81, 1500, 1700);
+    // Filter 0, Apollo 80: 2576 Hz pole, tau about 14 machine cycles.
+    failures += check_step(top, 0, 14, 1600, 1800);
 
     // MPT-02 reference: FliP's captures near 379.3 Hz (580 cycles at 220029 Hz).
-    failures += check_harmonics(top, 0, 580, {{-16.20, -24.35, -30.54, -35.52}}, "MPT-02 capture");
+    failures += check_harmonics(top, 1, 580, {{-16.20, -24.35, -30.54, -35.52}}, "MPT-02 capture");
     // Apollo 80 reference: TLD1985 default tone, 506.3 Hz (432 cycles is 509.3 Hz).
-    failures += check_harmonics(top, 1, 432, {{-10.7, -17.0, -21.2, -24.5}}, "Apollo 80 capture");
+    failures += check_harmonics(top, 0, 432, {{-10.7, -17.0, -21.2, -24.5}}, "Apollo 80 capture");
     // Off: the unfiltered square wave.
     failures += check_harmonics(top, 2, 432, {{-9.54, -13.98, -16.90, -19.08}}, "square");
 

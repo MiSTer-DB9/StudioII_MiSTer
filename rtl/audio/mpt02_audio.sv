@@ -3,7 +3,7 @@ module mpt02_audio
 	input clk,
 	input reset,
 	input cpu_ce,
-	input [1:0] filter, // 0 MPT-02 (435 Hz), 1 Apollo 80 (2.6 kHz), 2/3 off
+	input [1:0] filter, // 0 Apollo 80 (2.6 kHz), 1 MPT-02 (435 Hz), 2/3 off
 	input tone,
 	output signed [15:0] audio
 );
@@ -23,7 +23,7 @@ wire signed [31:0] step_apollo = (delta >>> 4) + (delta >>> 7)
 always @(posedge clk) begin
 	if (reset) level <= -32'sd393216000;
 	else if (filter[1]) level <= target;
-	else if (cpu_ce) level <= level + (filter[0] ? step_apollo : step_mpt02);
+	else if (cpu_ce) level <= level + (filter[0] ? step_mpt02 : step_apollo);
 end
 
 assign audio = level[31:16];

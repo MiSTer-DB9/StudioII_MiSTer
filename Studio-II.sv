@@ -64,31 +64,25 @@ localparam CONF_STR = {
 	"Studio-II;;",
 `endif
 
-
 	// === LOAD ===
 	"F1,ST2BIN,Load Software;",
 	"D3F3,CH8,Load CHIP-8;",
 	"-;",
-
 
 	// === MACHINE ===
 	"O[14:13],Machine,Studio II,Studio III PAL,Studio III NTSC,Visicom;",
 	"R[15],Apply and Reset;",
 	"-;",
 
-
 	// === INPUT ===
 	"P3,Input;",
-	"P3-;",
 	"P3O[6],Mapping,Auto,Manual;",
 	"D2P3O[5:2],Joystick profile,None,4-way,Space War,Freeway,Bowling,Baseball,Robson,Visicom Art,8-way,Art,Robson2P,Race,Gunfighter/Tennis,CHIP-8,Climber/Outbreak,Space Explorer;",
 	"P3O[8:7],Players,Auto,1,2;",
 	"P3O[10:9],Numstick,Off,Pad A,Pad B;",
 
-
 	// === AUDIO & VIDEO ===
 	"P1,Audio & Video;",
-	"P1-;",
 	// == VIDEO ==
 	"P1O[122:121],Aspect Ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"d6P1O[21],Vertical Crop,Disabled,216p (5x);",
@@ -108,17 +102,16 @@ localparam CONF_STR = {
 	"P1O[16],Sound,On,Off;",
 	"D4P1O[19:17],Beeper Pitch,Original,High,Higher,Highest,Lowest,Lower,Low;",
 	"D5P1O[20],CDP1863 Pitch,Original,PAL (Lower);",
-	"D7P1O[30:29],Studio III Filter,MPT-02,Apollo 80,Off;",
-
+	"D7P1O[30:29],Studio III Filter,Apollo 80,MPT-02,Off;",
 
 	// === SYSTEM ===
 	"P4,System;",
-	"P4-;",
 	"P4F2,BINROM,Load Firmware/ROM;",
 	"P4F4,BINROM,CHIP-8 Interpreter;",
 	"P4-;",	
 	"P4O[40],Info Messages,On,Off;",
 	"P4-;",
+	// == FUJINET == // disabled until Main support is added
 `ifdef FUJINET
 	"D8P4O[41],FujiNet Cartridge,Off,On;",
 	"P4-;",
@@ -128,18 +121,13 @@ localparam CONF_STR = {
 	"-;",
 	"R[0],Reset;",
 
-
 	// === INFO MESSAGES ===
 	"I,Joystick: None,Joystick: 4-way,Joystick: Space War,Joystick: Freeway,Joystick: Bowling,Joystick: Baseball,Joystick: Robson,Joystick: Visicom Art,Joystick: 8-way,Joystick: Art,Joystick: Robson2P,Joystick: Race,Joystick: Gunfighter/Tennis,Joystick: CHIP-8,Joystick: Climber/Outbreak,Joystick: Space Explorer;",
 
-
 	// === VIRTUAL MAPPINGS ===
 	"J1,Fire,Extra,Start,Clear,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,B0,B1,B2,B3,B4,B5,B6,B7,B8,B9;",
-
-
-	// === DEFAULT VIRTUAL MAPPING ===
+	// == DEFAULTS ==
 	"jn,A,B,Start,Select;",
-
 
 	// === VERSION ===
 	"v,0;",

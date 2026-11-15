@@ -44,7 +44,7 @@ module rcastudioii
 	input        [1:0] players,        // OSD: 0 = auto, 1 = one player, 2 = two players
 	input        [2:0] beeper_tune,    // OSD tuning; 0 = original/reference
 	input              ntsc_pal_pitch, // Studio III NTSC: use the PAL divide-by-four tone stage
-	input        [1:0] studio3_filter, // Studio III tone low-pass: 0 MPT-02, 1 Apollo 80, 2 off
+	input        [1:0] studio3_filter, // Studio III tone low-pass: 0 Apollo 80, 1 MPT-02, 2 off
 	input        [9:0] osk_a,          // on-screen keypad presses for keypad A (bit = key)
 	input        [9:0] osk_b,          // and for keypad B
 	output reg         chip8_fw_loaded,
