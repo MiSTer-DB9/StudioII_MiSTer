@@ -92,7 +92,7 @@ localparam CONF_STR = {
 	// == VIDEO ==
 	"P1O[122:121],Aspect Ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"d6P1O[21],Vertical Crop,Disabled,216p (5x);",
-	"d6P1O[25:22],Crop Offset,0,2,4,8,10,12,-12,-10,-8,-6,-4,-2;",
+	"d6P1O[25:22],Crop Offset,0,2,4,6,8,10,12,-12,-10,-8,-6,-4,-2;",
 	"P1O[12:11],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
 	"P1O[26],Borders,Show,Hide;",
 
@@ -644,7 +644,7 @@ reg  [4:0] voff    = 5'd0;
 always @(posedge CLK_VIDEO) begin
 	en216p <= (HDMI_WIDTH == 12'd1920) && (HDMI_HEIGHT == 12'd1080) &&
 	           !forced_scandoubler;
-	voff <= (vcopt < 4'd6) ? {vcopt, 1'b0} : ({vcopt, 1'b0} - 5'd24);
+	voff <= (vcopt < 4'd7) ? {vcopt, 1'b0} : ({vcopt, 1'b0} - 5'd26);
 end
 
 // VSync one pixel later so DE falling edge and VSync 
