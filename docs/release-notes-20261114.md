@@ -47,7 +47,8 @@ This release follows the October 16 release. It adds a selectable Studio III aud
 ## Testing and validation
 
 - The Studio III filter unit test and Verilator lint pass.
-- TODO: Quartus timing results and MiSTer hardware checks (OSD pages, Crop Offset).
+- MiSTer hardware checks passed: the reorganized OSD pages, per-machine palette menus, every Crop Offset step at 1080p with 216p crop, the Studio III filter options, and normal play on CDP1861 and CDP1864 machines after the EF1 change.
+- The Quartus build meets all reported timing checks with fitter seed 13. Worst setup slack is +0.399 ns; worst hold slack is +0.252 ns.
 
 ## Known limitations
 
