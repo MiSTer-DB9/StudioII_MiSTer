@@ -83,26 +83,27 @@ localparam CONF_STR = {
 
 	// === AUDIO & VIDEO ===
 	"P1,Audio & Video;",
+	// == AUDIO ==
+	"P1O[16],Sound,On,Off;",
+	"D4P1O[19:17],Beeper Pitch,Original,High,Higher,Highest,Lowest,Lower,Low;",
+	"D5P1O[20],CDP1863 Pitch,Original,PAL (Lower);",
+	"D7P1O[30:29],Studio III Filter,Apollo 80,MPT-02,Off;",
+	"P1-;",
 	// == VIDEO ==
 	"P1O[122:121],Aspect Ratio,Original,Full Screen,[ARC1],[ARC2];",
 	"d6P1O[21],Vertical Crop,Disabled,216p (5x);",
 	"d6P1O[25:22],Crop Offset,0,2,4,8,10,12,-12,-10,-8,-6,-4,-2;",
 	"P1O[12:11],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
 	"P1O[26],Borders,Show,Hide;",
-	"P1-;",
-	// == PALETTES ==
-	"D8P1O[33:31],Studio II Palette,Original,Amber,Green,Inverted,Custom;",
-	"HBP1F6,GBP,Load Custom Palette;",
-	"D7P1O[39:37],Studio III Palette,Original,Prototype,Warm,Cool,Custom;",
-	"HAP1F7,PAL,Load Custom Palette;",
-	"D9P1O[36:34],Visicom Palette,Balanced,Box Art,Emma 02,FliP,MAME,Manuals,Nicole Express,Custom;",
-	"HCP1F5,GBP,Load Custom Palette;",
-	"P1-;",
-	// == AUDIO ==
-	"P1O[16],Sound,On,Off;",
-	"D4P1O[19:17],Beeper Pitch,Original,High,Higher,Highest,Lowest,Lower,Low;",
-	"D5P1O[20],CDP1863 Pitch,Original,PAL (Lower);",
-	"D7P1O[30:29],Studio III Filter,Apollo 80,MPT-02,Off;",
+
+	// === PALETTES ===
+	"P2,Palettes;",
+	"D8P2O[33:31],Studio II Palette,Original,Amber,Green,Inverted,Custom;",
+	"HBP2F6,GBP,Load Custom Palette;",
+	"D7P2O[39:37],Studio III Palette,Original,Prototype,Warm,Cool,Custom;",
+	"HAP2F7,PAL,Load Custom Palette;",
+	"D9P2O[36:34],Visicom Palette,Balanced,Box Art,Emma 02,FliP,MAME,Manuals,Nicole Express,Custom;",
+	"HCP2F5,GBP,Load Custom Palette;",
 
 	// === SYSTEM ===
 	"P4,System;",

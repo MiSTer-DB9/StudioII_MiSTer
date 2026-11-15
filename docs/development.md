@@ -77,7 +77,7 @@ Relevant status fields:
 
 `status_menumask` controls option availability, including disabling Load CHIP-8 on Visicom. Custom palette loader rows appear only when the corresponding machine is active and its palette selector is set to Custom.
 
-The top level contains Load Software, Load CHIP-8, Machine, Apply and Reset, Input, Audio & Video, System, and Reset. Mapping and controller options remain in Input. System contains firmware/interpreter loading, Info Messages (On by default), Clear, and Unload Software. Joystick profiles are announced through HPS info popups after boot, software loading, or a profile change settles. Reset resets the core and closes the OSD.
+The top level contains Load Software, Load CHIP-8, Machine, Apply and Reset, Input, Audio & Video, Palettes, System, and Reset. Mapping and controller options remain in Input. Audio & Video lists audio options first, then video. Palettes shows the current machine's palette and, when Custom is selected, its loader. System contains firmware/interpreter loading, Info Messages (On by default), Clear, and Unload Software. Joystick profiles are announced through HPS info popups after boot, software loading, or a profile change settles. Reset resets the core and closes the OSD.
 
 ## Audio
 

@@ -93,6 +93,9 @@ CHIP-8 cannot be used on Visicom (no CHIP-8 interpreter).
 
 * Beeper pitch adjusts the Studio II and Visicom beeper tuning. 
 * CDP1863 pitch toggles Studio III NTSC's original pitch and the (less piercing) Studio III PAL pitch.
+
+## Palettes
+
 * Studio II and Visicom custom palettes use 16-byte MiSTer Game Boy .gbp files. Studio II uses first and last .gbp colors for white/black, respectively. Also works with CHIP-8.
 * Studio III custom palettes use a headerless .pal file. Eight sequential RGB888 entries (24 bytes); trailing bytes are ignored.
 
