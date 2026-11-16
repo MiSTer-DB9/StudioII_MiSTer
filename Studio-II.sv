@@ -25,7 +25,14 @@ module emu
 
 assign ADC_BUS  = 'Z;
 assign USER_OUT = '1;
+// FujiNet cartridge support is built only with the FUJINET macro (see
+// Studio-II.qsf). It needs the FujiNet-enabled MiSTer Main and s2cartd, which
+// are not in the stock MiSTer release yet, so release builds leave it out.
+`ifdef FUJINET
+assign {UART_RTS, UART_DTR} = 0;
+`else
 assign {UART_RTS, UART_TXD, UART_DTR} = 0;
+`endif
 assign {SD_SCK, SD_MOSI, SD_CS} = 'Z;
 assign {SDRAM_DQ, SDRAM_A, SDRAM_BA, SDRAM_CLK, SDRAM_CKE, SDRAM_DQML, SDRAM_DQMH, SDRAM_nWE, SDRAM_nCAS, SDRAM_nRAS, SDRAM_nCS} = 'Z;
 assign {DDRAM_CLK, DDRAM_BURSTCNT, DDRAM_ADDR, DDRAM_DIN, DDRAM_BE, DDRAM_RD, DDRAM_WE} = '0;  
@@ -51,59 +58,79 @@ assign BUTTONS = 0;
 
 `include "build_id.v"
 localparam CONF_STR = {
+`ifdef FUJINET
+	"Studio-II;UART1562500:921600:3125000:115200;",
+`else
 	"Studio-II;;",
+`endif
+
 	// === LOAD ===
 	"F1,ST2BIN,Load Software;",
 	"D3F3,CH8,Load CHIP-8;",
 	"-;",
+
 	// === MACHINE ===
 	"O[14:13],Machine,Studio II,Studio III PAL,Studio III NTSC,Visicom;",
 	"R[15],Apply and Reset;",
 	"-;",
+
 	// === INPUT ===
 	"P3,Input;",
-	"P3-;",
 	"P3O[6],Mapping,Auto,Manual;",
 	"D2P3O[5:2],Joystick profile,None,4-way,Space War,Freeway,Bowling,Baseball,Robson,Visicom Art,8-way,Art,Robson2P,Race,Gunfighter/Tennis,CHIP-8,Climber/Outbreak,Space Explorer;",
 	"P3O[8:7],Players,Auto,1,2;",
 	"P3O[10:9],Numstick,Off,Pad A,Pad B;",
+
 	// === AUDIO & VIDEO ===
 	"P1,Audio & Video;",
-	"P1-;",
-	"P1O[122:121],Aspect Ratio,Original,Full Screen,[ARC1],[ARC2];",
-	"d6P1O[21],Vertical Crop,Disabled,216p (5x);",
-	"d6P1O[25:22],Crop Offset,0,2,4,8,10,12,-12,-10,-8,-6,-4,-2;",
-	"P1O[12:11],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
-	"P1O[26],Borders,Show,Hide;",
-	"P1-;",
-	"D8P1O[33:31],Studio II Palette,Original,Amber,Green,Inverted,Custom;",
-	"HBP1F6,GBP,Load Custom Palette;",
-	"D7P1O[39:37],Studio III Palette,Original,Prototype,Warm,Cool,Custom;",
-	"HAP1F7,PAL,Load Custom Palette;",
-	"D9P1O[36:34],Visicom Palette,Balanced,Box Art,Emma 02,FliP,MAME,Manuals,Nicole Express,Custom;",
-	"HCP1F5,GBP,Load Custom Palette;",
-	"P1-;",
+	// == AUDIO ==
 	"P1O[16],Sound,On,Off;",
 	"D4P1O[19:17],Beeper Pitch,Original,High,Higher,Highest,Lowest,Lower,Low;",
 	"D5P1O[20],CDP1863 Pitch,Original,PAL (Lower);",
+	"D7P1O[30:29],Studio III Filter,Apollo 80,MPT-02,Off;",
+	"P1-;",
+	// == VIDEO ==
+	"P1O[122:121],Aspect Ratio,Original,Full Screen,[ARC1],[ARC2];",
+	"d6P1O[21],Vertical Crop,Disabled,216p (5x);",
+	"d6P1O[25:22],Crop Offset,0,2,4,6,8,10,12,-12,-10,-8,-6,-4,-2;",
+	"P1O[12:11],Scale,Normal,V-Integer,Narrower HV-Integer,Wider HV-Integer;",
+	"P1O[26],Borders,Show,Hide;",
+
+	// === PALETTES ===
+	"P2,Palettes;",
+	"D8P2O[33:31],Studio II Palette,Original,Amber,Green,Inverted,Custom;",
+	"HBP2F6,GBP,Load Custom Palette;",
+	"D7P2O[39:37],Studio III Palette,Original,Prototype,Warm,Cool,Custom;",
+	"HAP2F7,PAL,Load Custom Palette;",
+	"D9P2O[36:34],Visicom Palette,Balanced,Box Art,Emma 02,FliP,MAME,Manuals,Nicole Express,Custom;",
+	"HCP2F5,GBP,Load Custom Palette;",
+
 	// === SYSTEM ===
 	"P4,System;",
-	"P4-;",
 	"P4F2,BINROM,Load Firmware/ROM;",
 	"P4F4,BINROM,CHIP-8 Interpreter;",
 	"P4-;",	
 	"P4O[40],Info Messages,On,Off;",
 	"P4-;",
+	// == FUJINET == // disabled until Main support is added
+`ifdef FUJINET
+	"D8P4O[41],FujiNet Cartridge,Off,On;",
+	"P4-;",
+`endif
 	"P4R[28],Unload Software;",
 	"P4T[1],Clear (Soft Reset);",
 	"-;",
 	"R[0],Reset;",
+
 	// === INFO MESSAGES ===
 	"I,Joystick: None,Joystick: 4-way,Joystick: Space War,Joystick: Freeway,Joystick: Bowling,Joystick: Baseball,Joystick: Robson,Joystick: Visicom Art,Joystick: 8-way,Joystick: Art,Joystick: Robson2P,Joystick: Race,Joystick: Gunfighter/Tennis,Joystick: CHIP-8,Joystick: Climber/Outbreak,Joystick: Space Explorer;",
+
 	// === VIRTUAL MAPPINGS ===
 	"J1,Fire,Extra,Start,Clear,A0,A1,A2,A3,A4,A5,A6,A7,A8,A9,B0,B1,B2,B3,B4,B5,B6,B7,B8,B9;",
-	// === DEFAULT VIRTUAL MAPPING ===
+	// == DEFAULTS ==
 	"jn,A,B,Start,Select;",
+
+	// === VERSION ===
 	"v,0;",
 	"V,v",`BUILD_DATE
 };
@@ -112,6 +139,7 @@ wire forced_scandoubler;
 wire  [21:0] gamma_bus;
 wire   [1:0] buttons;
 wire [127:0] status;
+wire  [31:0] uart_speed;
 // Gray-out OSD options
 wire  [15:0] status_menumask;
 wire  [10:0] ps2_key;
@@ -158,6 +186,7 @@ hps_io #(.CONF_STR(CONF_STR), .CONF_STR_BRAM(1)) hps_io
 
 	.buttons(buttons),
 	.status(status),
+	.uart_speed(uart_speed),
 	.status_in(status_in),
 	.status_set(status_set),
 	.status_menumask(status_menumask),
@@ -325,6 +354,34 @@ wire [2:0] video;   	// R,G,B
 wire       video_bg;    // CDP1864 BCKGND
 wire [1:0] vis_index;   // Visicom
 
+wire       fn_rx_strobe, fn_tx_valid, fn_tx_ready;
+wire [7:0] fn_rx_byte, fn_tx_byte;
+
+`ifdef FUJINET
+wire fujinet_en = status[41];
+
+fn_uart fn_uart
+(
+	.clk_u     (CLK_50M),
+	.speed     (uart_speed),
+	.rxd       (UART_RXD),
+	.txd       (UART_TXD),
+	.clk       (clk_sys),
+	.rx_strobe (fn_rx_strobe),
+	.rx_byte   (fn_rx_byte),
+	.tx_valid  (fn_tx_valid),
+	.tx_byte   (fn_tx_byte),
+	.tx_ready  (fn_tx_ready)
+);
+`else
+// Cart held disabled with an idle link, so synthesis can prune it.
+wire fujinet_en = 1'b0;
+
+assign fn_rx_strobe = 1'b0;
+assign fn_rx_byte   = 8'h00;
+assign fn_tx_ready  = 1'b0;
+`endif
+
 rcastudioii rcastudio
 (
 	.clk_sys(clk_sys),
@@ -357,11 +414,18 @@ rcastudioii rcastudio
 	.joy_override(status[5:2]),
 	.machine(machine_active),
 	.video_bg(video_bg),
+	.fujinet_en(fujinet_en),
+	.fn_rx_strobe(fn_rx_strobe),
+	.fn_rx_byte(fn_rx_byte),
+	.fn_tx_valid(fn_tx_valid),
+	.fn_tx_byte(fn_tx_byte),
+	.fn_tx_ready(fn_tx_ready),
 	.joy_manual(status[6]),
 	.auto_profile(auto_profile),
 	.players(status[8:7]),
 	.beeper_tune(status[19:17]),
 	.ntsc_pal_pitch(status[20]),
+	.studio3_filter(status[30:29]),
 	.osk_a(osk_a),
 	.osk_b(osk_b),
 	.clear_key(clear_request),
@@ -580,7 +644,7 @@ reg  [4:0] voff    = 5'd0;
 always @(posedge CLK_VIDEO) begin
 	en216p <= (HDMI_WIDTH == 12'd1920) && (HDMI_HEIGHT == 12'd1080) &&
 	           !forced_scandoubler;
-	voff <= (vcopt < 4'd6) ? {vcopt, 1'b0} : ({vcopt, 1'b0} - 5'd24);
+	voff <= (vcopt < 4'd7) ? {vcopt, 1'b0} : ({vcopt, 1'b0} - 5'd26);
 end
 
 // VSync one pixel later so DE falling edge and VSync 

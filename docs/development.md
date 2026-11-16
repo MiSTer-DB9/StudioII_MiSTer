@@ -77,7 +77,7 @@ Relevant status fields:
 
 `status_menumask` controls option availability, including disabling Load CHIP-8 on Visicom. Custom palette loader rows appear only when the corresponding machine is active and its palette selector is set to Custom.
 
-The top level contains Load Software, Load CHIP-8, Machine, Apply and Reset, Input, Audio & Video, System, and Reset. Mapping and controller options remain in Input. System contains firmware/interpreter loading, Info Messages (On by default), Clear, and Unload Software. Joystick profiles are announced through HPS info popups after boot, software loading, or a profile change settles. Reset resets the core and closes the OSD.
+The top level contains Load Software, Load CHIP-8, Machine, Apply and Reset, Input, Audio & Video, Palettes, System, and Reset. Mapping and controller options remain in Input. Audio & Video lists audio options first, then video. Palettes shows the current machine's palette and, when Custom is selected, its loader. System contains firmware/interpreter loading, Info Messages (On by default), Clear, and Unload Software. Joystick profiles are announced through HPS info popups after boot, software loading, or a profile change settles. Reset resets the core and closes the OSD.
 
 ## Audio
 
@@ -85,7 +85,7 @@ The Studio II/Visicom NE555 pitch selector provides Original, High, Higher, High
 
 The Studio III NTSC CDP1863 pitch selector provides native pitch or the CDP1864 divide-by-four stage for PAL-equivalent pitch. The same live generator state is retained when the divider selection changes.
 
-Studio III audio uses an approximately 435 Hz low-pass response fitted to FliP's direct PAL CDP1864 recordings. Its use for NTSC CDP1863 audio is provisional pending hardware recordings. See `docs/mpt02-audio.md` for the measurements.
+Studio III audio uses a selectable low-pass response: approximately 2.6 kHz fitted to TLD1985's Academy Apollo 80 footage (default), 435 Hz fitted to FliP's direct PAL CDP1864 recordings, or off. Its use for NTSC CDP1863 audio is provisional pending hardware recordings. See `docs/mpt02-audio.md` for the measurements.
 
 Muting gates the final audio output. Tone generators continue running while muted.
 
@@ -216,7 +216,7 @@ Marcel's interpreter has a virtual program ceiling of `$0AFF` and only a small t
 - Studio II is NTSC-only and uses an adjusted RC oscillator; the approximately 1.760 MHz core clock is a practical hardware-derived model, not an exact crystal constant.
 - CDP1861/CDP1864 EF timing deliberately leads nominal line boundaries. Interrupt and DMA requests are accepted at instruction boundaries, and DMA remains asserted until serviced.
 - `CON` is captured with each luminance DMA byte.
-- Studio III NTSC is a CDP1861 + CDP1862 + CDP1863 machine, not a retimed CDP1864 implementation.
+- The Studio III NTSC mode models CDP1861 + CDP1862 + CDP1863, following Emma 02. The existence of a retail machine with this combination and the NTSC ROM provenance remain unconfirmed.
 - In the CPU Cx row, `C4` is NOP and `C5-C7`/`CC-CF` are long skips.
 
 ## Verification
