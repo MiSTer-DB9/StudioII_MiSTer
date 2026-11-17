@@ -44,6 +44,7 @@ module rcastudioii
 	input        [1:0] players,        // OSD: 0 = auto, 1 = one player, 2 = two players
 	input        [2:0] beeper_tune,    // OSD tuning; 0 = original/reference
 	input              ntsc_pal_pitch, // Studio III NTSC: use the PAL divide-by-four tone stage
+	input        [1:0] studio3_filter, // Studio III tone low-pass: 0 Apollo 80, 1 MPT-02, 2 off
 	input        [9:0] osk_a,          // on-screen keypad presses for keypad A (bit = key)
 	input        [9:0] osk_b,          // and for keypad B
 	output reg         chip8_fw_loaded,
@@ -55,6 +56,14 @@ module rcastudioii
 	//    2  Studio III NTSC
 	//    3  Visicom
 	input        [1:0] machine,
+
+	// FujiNet cartridge link (fujinet/fujinet_cart.sv)
+	input              fujinet_en,
+	input              fn_rx_strobe,
+	input        [7:0] fn_rx_byte,
+	output             fn_tx_valid,
+	output       [7:0] fn_tx_byte,
+	input              fn_tx_ready,
 
 	output reg         HBlank,
 	output reg         HSync,
@@ -109,16 +118,45 @@ wire [7:0] code    = ps2_key[7:0];
 reg  [9:0] playerA = 10'h0;
 reg  [9:0] playerB = 10'h0;
 reg        chip8_active_d = 1'b0;
+
+// Cursor keys act as a joystick on keypad A: arrows give 2/8/4/6 and a pair of
+// arrows gives the corner key (Up+Left = 1, Down+Right = 9), the same as the
+// MAP_8WAY joystick profile. Enter gives 5 and Backspace gives 0. kbd_dir uses
+// the MiSTer joystick bit order: [0]=right [1]=left [2]=down [3]=up.
+wire       extended = ps2_key[8];
+reg  [3:0] kbd_dir   = 4'h0;
+reg        kbd_enter = 1'b0;
+reg        kbd_bksp  = 1'b0;
+
 always @(posedge clk_sys) begin
 	reg old_state;
 	old_state <= ps2_key[10];
 	chip8_active_d <= chip8_active;
 
 	if(chip8_active_d != chip8_active) begin
-		playerA <= 10'd0;
-		playerB <= 10'd0;
+		playerA   <= 10'd0;
+		playerB   <= 10'd0;
+		kbd_dir   <= 4'h0;
+		kbd_enter <= 1'b0;
+		kbd_bksp  <= 1'b0;
 	end
 	else if(old_state != ps2_key[10]) begin
+		// Cursor keys are E0-prefixed; without E0 the same codes are the
+		// numeric keypad's 8/2/4/6, which stay unmapped.
+		if(extended) case(code)
+			'h75: kbd_dir[3] <= pressed; // Up    → 2
+			'h72: kbd_dir[2] <= pressed; // Down  → 8
+			'h6B: kbd_dir[1] <= pressed; // Left  → 4
+			'h74: kbd_dir[0] <= pressed; // Right → 6
+			default: ;
+		endcase
+
+		case(code)
+			'h5A: kbd_enter <= pressed;  // Enter (main or keypad) → 5
+			'h66: kbd_bksp  <= pressed;  // Backspace → 0
+			default: ;
+		endcase
+
 		case(code)
 			// Keypad A / CHIP-8 digits
 			'h16: playerA[1] <= pressed; // 1 → 1
@@ -156,14 +194,23 @@ always @(posedge clk_sys) begin
 end
 
 
+// Keypad A as typed: digit keys plus the cursor/Enter/Backspace cluster.
+// Assigned below the include, which defines map_8way.
+wire [9:0] kbd_padA;
+
 ////////////////// JOYSTICK -> KEYPAD ///////////////////////////////////////
 `include "studio2_input_mapping.svh"
+
+assign kbd_padA = playerA
+                | map_8way({28'd0, kbd_dir})
+                | (kbd_enter ? 10'b00_0010_0000 : 10'd0)   // 5
+                | (kbd_bksp  ? 10'b00_0000_0001 : 10'd0);  // 0
 
 ////////////////// CPU //////////////////////////////////////////////////////////////////
 
 wire  [3:0] EF;
 wire        key_valid = (keylatch < 4'd10);
-wire  [9:0] padA = playerA | joyA_active | osk_a;
+wire  [9:0] padA = kbd_padA | joyA_active | osk_a;
 wire  [9:0] padB = playerB | joyB_active | osk_b;
 assign EF = {key_valid & padB[keylatch], key_valid & padA[keylatch], 1'b1, EFx};
 
@@ -184,10 +231,11 @@ always @(posedge clk_sys) begin
 	else if (ce_pix) cpu_div <= cpu_div + 3'd1;
 end
 reg dma_in_req  = 1'b0;
+wire fn_active, fn_hold;     // FujiNet cart: owns the decode / holds CLEAR
 cdp1802 cdp1802 (
   .CLOCK        (clk_sys),
   .clk_enable   (cpu_ce),
-  .CLEAR_N      (~reset),
+  .CLEAR_N      (~(reset | fn_hold)),
 
   .Q            (Q),            // O beeper, active high
   .EF           (EF),           // I 3:0 external flags EF1 to EF4
@@ -249,7 +297,7 @@ wire        rom_hi   = (((is_studio3 && !chip8_os2_active) || chip8_marcel_activ
 wire        col_sel  = is_studio3 && bank0 && (ram_a[11:8] == 4'hB);
 // Cartridge ownership is not part of firmware storage
 wire        cart_sel = bank0 && cart_page[ram_a[11:8]] &&
-	                   !col_sel && !chip8_active;
+	                   !col_sel && !chip8_active && !fn_active;
 
 // ---- Toshiba Visicom COM-100 ----------------------------------------------
 //
@@ -305,7 +353,38 @@ always @(posedge clk_sys) begin
 	col_addr_q    <= ram_a[5:0];
 	os2_ram_sel_q <= os2_ram_sel;
 end
-assign ram_q = os2_ram_sel_q ? os2_ram_q
+// FujiNet: the cart claims pages anywhere; what it leaves is the console's
+// BIOS, its RAM mirrors, else open bus (ROM DISABLE removes the built-in games).
+reg         fn_bios_q;
+always @(posedge clk_sys) fn_bios_q <= (ram_a[15:10] == 6'd0);
+wire [7:0]  fn_q;
+wire        fn_drive;
+wire [7:0]  fn_ram_q = fn_drive  ? fn_q
+                     : fn_bios_q ? rom_q
+                     : ram_sel_q ? sram_q : 8'hFF;
+
+fujinet_cart fujinet_cart
+(
+	.clk       (clk_sys),
+	.reset     (reset | fn_hold),
+	.enable    (fujinet_en && machine == MACHINE_STUDIO2),
+	.cpu_ce    (cpu_ce),
+	.ram_rd    (ram_rd),
+	.ram_a     (ram_a),
+	.active    (fn_active),
+	.hold      (fn_hold),
+	.drive     (fn_drive),
+	.q         (fn_q),
+	.rx_strobe (fn_rx_strobe),
+	.rx_byte   (fn_rx_byte),
+	.tx_valid  (fn_tx_valid),
+	.tx_byte   (fn_tx_byte),
+	.tx_ready  (fn_tx_ready)
+);
+
+
+assign ram_q = fn_active ? fn_ram_q
+             : os2_ram_sel_q ? os2_ram_q
              : pl1_sel_q        ? pl1_q
              : ram_sel_q        ? sram_q
              : cart_sel_q       ? cart_q
@@ -844,6 +923,17 @@ always @(*) begin
 end
 
 ////////////////// SOUND ////////////////////////////////////////////////////
+wire signed [15:0] mpt02_sample;
+mpt02_audio mpt02_audio
+(
+	.clk    (clk_sys),
+	.reset  (video_reset),
+	.cpu_ce (cpu_ce),
+	.filter (studio3_filter),
+	.tone   (aud_tone),
+	.audio  (mpt02_sample)
+);
+
 `include "studio2_beeper_inline.svh"
 
 endmodule

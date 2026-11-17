@@ -84,6 +84,7 @@ verilator/obj_dir_cpu_load/
 verilator/obj_dir_headless/
 verilator/obj_dir_palette/
 verilator/obj_dir_emu_reset/
+verilator/obj_dir_mpt02_audio/
 verilator/out/
 verilator/sim.vcd
 verilator/spacewar.bin
@@ -101,3 +102,5 @@ tools/vispalette/vispalette
 tools/studio3-palette/studio3-palette
 Studio-II.dse
 /tmp
+/software_archive
+docs/fujinet-test.md

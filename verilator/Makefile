@@ -64,6 +64,7 @@ V_SRC = \
 	sim.v \
 	$(RTL)/rcastudioii.sv \
 	$(RTL)/audio/studio2_beeper.sv \
+	$(RTL)/audio/mpt02_audio.sv \
 	$(RTL)/studio2_palette.sv \
 	$(RTL)/cdp1802.v \
 	$(RTL)/dpram.sv \
@@ -71,7 +72,8 @@ V_SRC = \
 	$(RTL)/pixie/cdp1864.v \
 	$(RTL)/pixie/cdp1863.v \
 	$(RTL)/pixie/cdp1862.v \
-	$(RTL)/pixie/pixie_video.v
+	$(RTL)/pixie/pixie_video.v \
+	$(RTL)/fujinet/fujinet_cart.sv
 
 C_SRC = \
 	sim_main.cpp \
@@ -103,7 +105,7 @@ EMU_RESET_DIR = obj_dir_emu_reset
 EMU_RESET_EXE = ./$(EMU_RESET_DIR)/Vemu_reset_test
 EMU_RESET_SRC = $(filter-out sim.v,$(V_SRC)) ../Studio-II.sv $(RTL)/numstick.sv \
 	$(addprefix ../sys/,video_mixer.sv video_freak.sv video_freezer.sv gamma_corr.sv scandoubler.v hq2x.sv scanlines.v math.sv) \
-	test_support/emu_stubs.sv emu_reset_test.sv
+	$(RTL)/fujinet/fn_uart.sv test_support/emu_stubs.sv emu_reset_test.sv
 
 all: $(EXE)
 
@@ -117,6 +119,11 @@ cpu-load-test: $(CPU_LOAD_EXE)
 
 palette-test: $(PALETTE_EXE)
 	$(PALETTE_EXE)
+
+mpt02-audio-test:
+	$V -cc --exe --build --Mdir ./obj_dir_mpt02_audio --top-module mpt02_audio \
+		$(RTL)/audio/mpt02_audio.sv mpt02_audio_test.cpp
+	./obj_dir_mpt02_audio/Vmpt02_audio
 
 emu-reset-test: $(EMU_RESET_EXE)
 	$(EMU_RESET_EXE)
@@ -154,6 +161,6 @@ lint:
 	$V --lint-only -Wall -Wno-DECLFILENAME -Wno-fatal $(V_INC) $(TOP) $(V_SRC)
 
 clean:
-	rm -rf obj_dir $(HL_DIR) $(CPU_LOAD_DIR) $(PALETTE_DIR) $(EMU_RESET_DIR)
+	rm -rf obj_dir $(HL_DIR) $(CPU_LOAD_DIR) $(PALETTE_DIR) $(EMU_RESET_DIR) obj_dir_mpt02_audio
 
-.PHONY: all headless loader-regression cpu-load-test palette-test emu-reset-test lint fast clean
+.PHONY: all headless loader-regression cpu-load-test palette-test mpt02-audio-test emu-reset-test lint fast clean

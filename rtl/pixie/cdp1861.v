@@ -124,8 +124,8 @@ always @(posedge clk) begin
 end
 
 // ---------------------------------------------------------------------------
-// Display enable: INP 1 turns it on, OUT 1 off. With the display off the part
-// drives neither DMA, nor the interrupt, nor EF1.
+// Display enable: INP 1 on, OUT 1 off. Gates DMA and INT only; EF1 always
+// runs (datasheet, DISP ON/OFF).
 // ---------------------------------------------------------------------------
 reg display_enabled;
 always @(posedge clk) begin
@@ -296,8 +296,7 @@ always @(posedge clk) begin
                  !((vcount == DISPLAY_START - 1) && (hcount >= 112 - INT_LEAD))));
         // EFx leads for the same AVI1861 line-counter reason. The BIOS waits on
         // this edge to align its display loop with the first DMA burst.
-        EFx <= display_enabled &&
-               ((((vcount == EFX_TOP_START - 1) && (hcount >= 112 - EFX_LEAD)) ||
+        EFx <= ((((vcount == EFX_TOP_START - 1) && (hcount >= 112 - EFX_LEAD)) ||
                  ((vcount >= EFX_TOP_START) && (vcount < DISPLAY_START) &&
                   !((vcount == DISPLAY_START - 1) && (hcount >= 112 - EFX_LEAD)))) ||
                 (((vcount == EFX_BOT_START - 1) && (hcount >= 112 - EFX_LEAD)) ||

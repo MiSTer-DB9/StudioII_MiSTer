@@ -73,16 +73,19 @@ Relevant status fields:
 | `status[33:31]` | Studio II palette |
 | `status[36:34]` | Visicom palette |
 | `status[39:37]` | Studio III palette |
+| `status[40]` | info messages disabled |
 
-`status_menumask` hides controls that do not apply to the active machine. Custom palette loader rows appear only when the corresponding machine is active and its palette selector is set to Custom.
+`status_menumask` controls option availability, including disabling Load CHIP-8 on Visicom. Custom palette loader rows appear only when the corresponding machine is active and its palette selector is set to Custom.
 
-The System submenu contains Machine ROM and CHIP-8 Core replacement. Load Software, Load CHIP-8, Machine, Apply and Reset, Clear, Reset, Unload Software, and Unload Software and Reset remain at the top level.
+The top level contains Load Software, Load CHIP-8, Machine, Apply and Reset, Input, Audio & Video, Palettes, System, and Reset. Mapping and controller options remain in Input. Audio & Video lists audio options first, then video. Palettes shows the current machine's palette and, when Custom is selected, its loader. System contains firmware/interpreter loading, Info Messages (On by default), Clear, and Unload Software. Joystick profiles are announced through HPS info popups after boot, software loading, or a profile change settles. Reset resets the core and closes the OSD.
 
 ## Audio
 
 The Studio II/Visicom NE555 pitch selector provides Original, High, Higher, Highest, Lowest, Lower, and Low. Tuning scales the latched full oscillator period before the 11:6 phase split; it does not replace or restart the generator state.
 
 The Studio III NTSC CDP1863 pitch selector provides native pitch or the CDP1864 divide-by-four stage for PAL-equivalent pitch. The same live generator state is retained when the divider selection changes.
+
+Studio III audio uses a selectable low-pass response: approximately 2.6 kHz fitted to TLD1985's Academy Apollo 80 footage (default), 435 Hz fitted to FliP's direct PAL CDP1864 recordings, or off. Its use for NTSC CDP1863 audio is provisional pending hardware recordings. See `docs/mpt02-audio.md` for the measurements.
 
 Muting gates the final audio output. Tone generators continue running while muted.
 
@@ -96,7 +99,7 @@ Built-in selections are owned by `rtl/studio2_palette.sv`:
 
 - Studio II: Original, Amber, Green, Inverted, Custom.
 - Studio III: Original, Prototype, Warm, Cool, Custom.
-- Visicom: Balanced, Box Art, Emma 02, FLiP, MAME, Manuals, Nicole Express, Custom.
+- Visicom: Balanced, Box Art, Emma 02, FliP, MAME, Manuals, Nicole Express, Custom.
 
 ## Video behavior
 
@@ -131,8 +134,8 @@ CPU/machine reset and raster reset are separate. `reset` restarts machine state;
 | Core load, MiSTer reset, unknown download | hard | restarts |
 | Software load | sync-preserving | remains live |
 | CHIP-8 load | sync-preserving | remains live |
-| Machine ROM load | sync-preserving | remains live |
-| CHIP-8 Core load | sync-preserving | remains live |
+| Firmware/ROM load | sync-preserving | remains live |
+| CHIP-8 interpreter load | sync-preserving | remains live |
 | Custom palette load | none | remains live |
 | Same-standard Apply and Reset | sync-preserving | remains live |
 | PAL/NTSC Apply and Reset | hard | restarts |
@@ -141,6 +144,8 @@ CPU/machine reset and raster reset are separate. `reset` restarts machine state;
 Download type is latched through the post-download reset stretch because `ioctl_index` is valid only during transfer. Apply and Reset determines whether a machine change crosses video standards before updating `machine_active`. Hard reset sources dominate overlaps.
 
 CLEAR is normal console operation, not a generic hard reset. Its special handling leaves the Studio III tone generator running.
+
+Without a machine BIOS, the top level holds reset unless a CHIP-8 program is active. Loading a program with bundled OpenStudio2 releases that hold. Unloading restores the BIOS requirement; interpreter replacement alone does not bypass it.
 
 ## Firmware and download routes
 
@@ -164,9 +169,9 @@ The low six bits of `ioctl_index` select the user download route:
 |---:|---|---|---|
 | `0` | boot firmware/autoload | ROM | hard during core boot |
 | `1` | Load Software | `.st2`, `.bin`, `.rom` | sync-preserving soft reset |
-| `2` | Load Machine ROM | `.bin`, `.rom` | sync-preserving soft reset |
+| `2` | Load Firmware/ROM | `.bin`, `.rom` | sync-preserving soft reset |
 | `3` | Load CHIP-8 | `.ch8` | sync-preserving soft reset |
-| `4` | Load CHIP-8 Core | `.bin`, `.rom` | sync-preserving soft reset |
+| `4` | CHIP-8 Interpreter | `.bin`, `.rom` | sync-preserving soft reset |
 | `5` | Visicom custom palette | `.gbp` | none |
 | `6` | Studio II custom palette | `.gbp` | none |
 | `7` | Studio III custom palette | `.pal` | none |
@@ -211,7 +216,7 @@ Marcel's interpreter has a virtual program ceiling of `$0AFF` and only a small t
 - Studio II is NTSC-only and uses an adjusted RC oscillator; the approximately 1.760 MHz core clock is a practical hardware-derived model, not an exact crystal constant.
 - CDP1861/CDP1864 EF timing deliberately leads nominal line boundaries. Interrupt and DMA requests are accepted at instruction boundaries, and DMA remains asserted until serviced.
 - `CON` is captured with each luminance DMA byte.
-- Studio III NTSC is a CDP1861 + CDP1862 + CDP1863 machine, not a retimed CDP1864 implementation.
+- The Studio III NTSC mode models CDP1861 + CDP1862 + CDP1863, following Emma 02. The existence of a retail machine with this combination and the NTSC ROM provenance remain unconfirmed.
 - In the CPU Cx row, `C4` is NOP and `C5-C7`/`CC-CF` are long skips.
 
 ## Verification

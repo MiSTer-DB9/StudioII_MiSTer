@@ -17,6 +17,8 @@
 #include "Vtop___024root.h"
 
 #include <zlib.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #include <cstdio>
 #include <cstdlib>
@@ -592,6 +594,8 @@ static void usage(const char* argv0) {
 "    --beeper-tune NAME   Studio II tuning: medium (default), high, higher,\n"
 "                         highest, low, lower, or lowest\n"
 "    --ntsc-tone-pitch P  Studio III NTSC pitch: original (default) or pal\n"
+"    --studio3-filter F   Studio III tone filter: apollo80 (default), mpt02\n"
+"                         or off\n"
 "    --swap FILE@FRAME    download another cartridge at frame F, like an OSD\n"
 "                         load while the machine is running\n"
 "    --press KEY@F[:H]    press KEY at frame F, hold H frames (default 4).\n"
@@ -645,6 +649,8 @@ int main(int argc, char** argv) {
     bool trace_vwr = false;
     unsigned long long trace_cyc_from = 0, trace_cyc_to = 0;
     bool trace_q = false;
+    bool fujinet = false;
+    std::string fujinet_pty_file;
     uint32_t joy_mask = 0; long joy_from = -1, joy_to = -1;
     uint32_t joy2_mask = 0; long joy2_from = -1, joy2_to = -1;
     std::string swap_file; long swap_frame = -1; bool swap_done = false;
@@ -657,6 +663,7 @@ int main(int argc, char** argv) {
     uint8_t  machine = 0;   // 0 studio2, 1 studio3 PAL, 2 studio3 NTSC, 3 Visicom
     uint8_t  beeper_tune = 0; // 0 medium/reference; remaining values follow the OSD
     bool     ntsc_pal_pitch = false;
+    uint8_t  studio3_filter = 0; // 0 Apollo 80, 1 MPT-02, 2 off
     bool     ce_div4 = false;  // run the hardware's /4 pixel enable (4x slower)
     uint32_t ram_junk_seed = 0;  // pre-fill RAM with junk (0 = boot with zeroed RAM)
     long     press_phase = 0;    // delay key events N clks past their frame boundary
@@ -788,8 +795,17 @@ int main(int argc, char** argv) {
             else if (t == "pal")      ntsc_pal_pitch = true;
             else { fprintf(stderr, "error: --ntsc-tone-pitch must be original or pal\n"); return 1; }
         }
+        else if (a == "--studio3-filter") {
+            std::string t = next("--studio3-filter");
+            if      (t == "apollo80") studio3_filter = 0;
+            else if (t == "mpt02")    studio3_filter = 1;
+            else if (t == "off")      studio3_filter = 2;
+            else { fprintf(stderr, "error: --studio3-filter must be apollo80, mpt02 or off\n"); return 1; }
+        }
         else if (a == "--joy-map") { joy_override = (uint8_t)atoi(next("--joy-map")); joy_manual = true; }
         else if (a == "--trace-q")    trace_q = true;
+        else if (a == "--fujinet")    fujinet = true;
+        else if (a == "--fujinet-pty") { fujinet = true; fujinet_pty_file = next("--fujinet-pty"); }
         else if (a == "--frame-log")  frame_log = true;
         else if (a == "--quiet")      quiet = true;
         else if (a == "--press") {
@@ -847,6 +863,7 @@ int main(int argc, char** argv) {
     top->machine = machine;
     top->beeper_tune = beeper_tune;
     top->ntsc_pal_pitch = ntsc_pal_pitch;
+    top->studio3_filter = studio3_filter;
     top->ce_div4 = ce_div4 ? 1 : 0;
     top->players = players_mode;
 
@@ -861,6 +878,29 @@ int main(int argc, char** argv) {
     if (!ch8.empty()) io.add(ch8, 3);
 
     FrameGrabber fg;
+
+    // FujiNet cart link: the core's link bytes on a pty, paced like the UART
+    // (one byte per 12 clocks, ~1.5 Mbaud at the 1.76 MHz pixel clock).
+    int fn_pty = -1;
+    std::vector<uint8_t> fn_rxq;
+    size_t fn_rxpos = 0;
+    long fn_pace = 0;
+    long fn_rx_total = 0, fn_tx_total = 0;
+    if (fujinet) {
+        fn_pty = posix_openpt(O_RDWR | O_NOCTTY);
+        if (fn_pty < 0 || grantpt(fn_pty) || unlockpt(fn_pty)) { perror("pty"); return 1; }
+        fcntl(fn_pty, F_SETFL, fcntl(fn_pty, F_GETFL) | O_NONBLOCK);
+        const char* slave = ptsname(fn_pty);
+        // keep the slave open so the master never sees a hangup between shims
+        int keep = open(slave, O_RDWR | O_NOCTTY);
+        (void)keep;
+        fprintf(stderr, "[fujinet] link pty %s\n", slave);
+        if (!fujinet_pty_file.empty()) {
+            FILE* pf = fopen(fujinet_pty_file.c_str(), "w");
+            if (pf) { fprintf(pf, "%s\n", slave); fclose(pf); }
+        }
+        top->fujinet_en = 1;
+    }
 
     top->clk_48 = 0; top->clk_24 = 0;
     top->ioctl_download = 0; top->ioctl_upload = 0; top->ioctl_wr = 0;
@@ -939,6 +979,30 @@ int main(int argc, char** argv) {
                         fg.frame, it->second.second ? "press" : "release", it->second.first);
             it = key_sched.erase(it);
             break;   // one event per clock so each toggle is seen
+        }
+
+        if (fn_pty >= 0) {
+            bool slot = (++fn_pace % 12) == 0;
+            top->fn_rx_strobe = 0;
+            if (slot) {
+                if (fn_rxpos == fn_rxq.size()) {
+                    uint8_t b[512];
+                    ssize_t n = read(fn_pty, b, sizeof b);
+                    fn_rxq.assign(b, b + (n > 0 ? n : 0));
+                    if (n > 0) fn_rx_total += n;
+                    fn_rxpos = 0;
+                }
+                if (fn_rxpos < fn_rxq.size()) {
+                    top->fn_rx_strobe = 1;
+                    top->fn_rx_byte = fn_rxq[fn_rxpos++];
+                }
+            }
+            top->fn_tx_ready = slot;
+            if (slot && top->fn_tx_valid) {    // taken on this edge
+                uint8_t b = top->fn_tx_byte;
+                if (write(fn_pty, &b, 1) != 1) fprintf(stderr, "[fujinet] pty write lost\n");
+                fn_tx_total++;
+            }
         }
 
         top->clk_48 = 1;
@@ -2008,6 +2072,14 @@ int main(int argc, char** argv) {
     printf("\n");
     printf("audio: %ld output edges, %ld Q edges\n", a_edges, q_edges);
     printf("done: %ld frames in %ld cycles\n", fg.frame, cycles);
+    if (fujinet) {
+#define FN(sig) (top->rootp->top__DOT__rcastudio__DOT__fujinet_cart__DOT__##sig)
+        printf("fujinet: pty rx %ld tx %ld bytes\n", fn_rx_total, fn_tx_total);
+        printf("fujinet: ready=%d hold=%d live=%d armed=%d mbx=%d ev_wp=%d ev_rp=%d lost=%d rx_n=%d regsel=%02X bank=%d r_line=%d front=%d\n",
+               (int)FN(c_ready), (int)FN(c_hold), (int)FN(live), (int)FN(armed), (int)FN(mbx),
+               (int)FN(ev_wp), (int)FN(ev_rp), (int)FN(ev_lost), (int)FN(rx_n), (int)FN(regsel),
+               (int)FN(bank), (int)FN(r_line), (int)FN(front));
+    }
     printf("      last frame %dx%d, hash %08X, %s\n",
            fg.last_width, fg.last_height, fg.hash(),
            fg.blank() ? "BLANK (nothing was drawn)" : "has content");

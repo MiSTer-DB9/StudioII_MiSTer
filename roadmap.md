@@ -10,8 +10,8 @@ is tracked here before the remaining longer-term ideas.
 - Validate palette presets and custom `.gbp`/`.pal` loading over HDMI and direct
   video. Verilator covers all preset mappings, both Studio III variants,
   complete-file commits, and permissive Studio III trailing bytes.
-- Validate the implemented Controls and System OSD submenus on MiSTer. Existing
-  status fields are unchanged and ordinary software actions remain top-level.
+- Validate the Audio & Video and System OSD submenus on MiSTer, including
+  machine-specific option availability and firmware/interpreter replacement.
 
 ## Keyboard and keypad ideas
 
@@ -20,22 +20,14 @@ is tracked here before the remaining longer-term ideas.
   number row and player two uses the physical numpad
 - Retain current keyboard layout on keypad A while physical 
   numpad drives keypad B
-- Add conventional CHIP-8 QWERTY layout:
-
-  | Original CHIP-8 keypad | Standard QWERTY mapping |
-  |---|---|
-  | 1 2 3 C | 1 2 3 4 |
-  | 4 5 6 D | Q W E R |
-  | 7 8 9 E | A S D F |
-  | A 0 B F | Z X C V |
-
 - Add an optional literal CHIP-8 keyboard layout in which every COSMAC VIP
   keypad symbol uses its matching MiSTer keyboard key (A to A, B to B,
   and so on).
 
 ## Hardware and presentation
 
-- Acquire reference audio for Studio III to verify accuracy
+- Confirm with Marcel the origin of Emma 02's Studio III NTSC configuration and ROM, and whether corresponding hardware existed. FliP reports no known retail NTSC successor; hardware audio may not be available. Pitch-write and latch-reset behavior still need targeted evidence. See `docs/mpt02-audio.md`.
+- Resolve the PAL filter disagreement: FliP's MPT-02 captures fit a 435 Hz pole, TLD1985's Apollo 80 footage a 2.6 kHz pole. Both are OSD settings; Apollo 80 is the default because MPT-02 sounds muted. Find out where each recording was tapped.
 - Verify direct video
 - Make Studio III homebrew that exercises tone generator
 
